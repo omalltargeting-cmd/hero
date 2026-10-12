@@ -1,0 +1,49 @@
+import asyncio
+import aiohttp
+from telethon import TelegramClient, events
+
+# ========= الإعدادات =========
+API_ID = 35666596                     # من https://my.telegram.org
+API_HASH = "42ba74dc2df82894d76616994019d20f"  # من https://my.telegram.org
+N8N_WEBHOOK = "https://n.couponscopy.com/webhook/recommendation"
+
+CHANNELS = [
+    "ForexNewspaper",
+    "FXGoldVisionMarkets",
+    "saffahelgold01",
+]
+# =============================
+
+client = TelegramClient("session", API_ID, API_HASH)
+
+
+@client.on(events.NewMessage(chats=CHANNELS))
+async def handler(event):
+    text = event.message.message or ""
+    if not text.strip():
+        return
+
+    chat = await event.get_chat()
+    payload = {
+        "text": text,
+        "chat_id": str(event.chat_id),
+        "chat_title": getattr(chat, "title", None) or getattr(chat, "username", "Unknown"),
+    }
+
+    try:
+        timeout = aiohttp.ClientTimeout(total=15)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(N8N_WEBHOOK, json=payload) as resp:
+                print(f"[{payload['chat_title']}] -> n8n status {resp.status}")
+    except Exception as e:
+        print("Failed to send to n8n:", e)
+
+
+async def main():
+    await client.start()  # أول مرة بيطلب رقم الهاتف وكود التحقق
+    print("Listening to:", ", ".join(CHANNELS))
+    await client.run_until_disconnected()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
