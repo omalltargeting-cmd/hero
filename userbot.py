@@ -15,6 +15,7 @@ CHANNELS = [
     "ForexNewspaper",
     "FXGoldVisionMarkets",
     "saffahelgold01",
+    "herohhg"
 ]
 # =====================================================
 
